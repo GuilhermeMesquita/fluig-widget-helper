@@ -12,8 +12,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.fluiggers.dto.WorkflowEventDto;
+import com.fluiggers.dto.WorkflowProcessDto;
 import com.fluiggers.dto.WorkflowUpdatedEventsDto;
 import com.fluiggers.exception.WorkflowNotFoundedException;
 import com.fluiggers.service.WorkflowService;
@@ -48,10 +50,9 @@ public class WorkflowController extends BaseController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public WorkflowUpdatedEventsDto updateWorkflowEvents(
-        @PathParam("processId") String processId,
-        @PathParam("version") int version,
-        List<WorkflowEventDto> events
-    ) {
+            @PathParam("processId") String processId,
+            @PathParam("version") int version,
+            List<WorkflowEventDto> events) {
 
         assertUserAccess();
 
@@ -92,6 +93,46 @@ public class WorkflowController extends BaseController {
         } catch (Exception e) {
             log.error(e);
             throw new InternalServerErrorException("Consulte o Log do Fluig para mais informações.");
+        }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<WorkflowProcessDto> listProcesses() {
+
+        assertUserAccess();
+
+        try {
+            var service = new WorkflowService();
+            return service.getProcesses(securityService.getCurrentTenantId());
+        } catch (Exception e) {
+            log.error(e);
+            throw new InternalServerErrorException("Consulte o Log do Fluig para mais informações.");
+        }
+    }
+
+    @GET
+    @Path("/{processId}/{version}/export")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response exportProcess(
+            @PathParam("processId") String processId,
+            @PathParam("version") int version) {
+
+        assertUserAccess();
+
+        try {
+            var service = new WorkflowService();
+
+            Object result = service.exportProcess(
+                    securityService.getCurrentTenantId(),
+                    processId,
+                    version);
+
+            return Response.ok(result).build();
+
+        } catch (Exception e) {
+            log.error(e);
+            throw new InternalServerErrorException("Erro ao exportar processo.");
         }
     }
 }

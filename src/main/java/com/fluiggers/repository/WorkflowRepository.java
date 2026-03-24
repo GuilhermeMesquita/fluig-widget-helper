@@ -6,8 +6,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.naming.InitialContext;
@@ -17,6 +20,7 @@ import org.jboss.logging.Logger;
 
 import com.fluiggers.dto.SuccessesAndErrorsDto;
 import com.fluiggers.dto.WorkflowEventDto;
+import com.fluiggers.dto.WorkflowProcessDto;
 import com.fluiggers.exception.WorkflowNotFoundedException;
 
 public class WorkflowRepository extends BaseRepository {
@@ -31,13 +35,11 @@ public class WorkflowRepository extends BaseRepository {
             DataSource ds = (DataSource) ic.lookup(DB_DATASOURCE_NAME);
 
             try (
-                Connection conn = ds.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(
-                    "SELECT MAX(NUM_VERS) AS MAX_VERSION "
-                    + "FROM VERS_DEF_PROCES "
-                    + "WHERE COD_EMPRESA = ? AND COD_DEF_PROCES = ?"
-                )
-            ) {
+                    Connection conn = ds.getConnection();
+                    PreparedStatement stmt = conn.prepareStatement(
+                            "SELECT MAX(NUM_VERS) AS MAX_VERSION "
+                                    + "FROM VERS_DEF_PROCES "
+                                    + "WHERE COD_EMPRESA = ? AND COD_DEF_PROCES = ?")) {
                 stmt.setLong(1, tenantId);
                 stmt.setString(2, processId);
 
@@ -49,7 +51,10 @@ public class WorkflowRepository extends BaseRepository {
             }
         } finally {
             if (ic != null) {
-                try { ic.close(); } catch (Exception ignore) {}
+                try {
+                    ic.close();
+                } catch (Exception ignore) {
+                }
             }
         }
 
@@ -61,10 +66,9 @@ public class WorkflowRepository extends BaseRepository {
     }
 
     public Set<String> getEventsFromWorkflow(
-        long tenantId,
-        String processId,
-        int version
-    ) {
+            long tenantId,
+            String processId,
+            int version) {
         Set<String> events = new HashSet<>();
 
         InitialContext ic = null;
@@ -74,13 +78,11 @@ public class WorkflowRepository extends BaseRepository {
             DataSource ds = (DataSource) ic.lookup(DB_DATASOURCE_NAME);
 
             try (
-                Connection conn = ds.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(
-                    "SELECT COD_EVENT AS EVENT "
-                    + "FROM event_proces "
-                    + "WHERE COD_EMPRESA = ? AND COD_DEF_PROCES = ? AND NUM_VERS = ?"
-                )
-            ) {
+                    Connection conn = ds.getConnection();
+                    PreparedStatement stmt = conn.prepareStatement(
+                            "SELECT COD_EVENT AS EVENT "
+                                    + "FROM event_proces "
+                                    + "WHERE COD_EMPRESA = ? AND COD_DEF_PROCES = ? AND NUM_VERS = ?")) {
                 stmt.setLong(1, tenantId);
                 stmt.setString(2, processId);
                 stmt.setInt(3, version);
@@ -95,7 +97,10 @@ public class WorkflowRepository extends BaseRepository {
             log.error(e);
         } finally {
             if (ic != null) {
-                try { ic.close(); } catch (Exception ignore) {}
+                try {
+                    ic.close();
+                } catch (Exception ignore) {
+                }
             }
         }
 
@@ -103,11 +108,10 @@ public class WorkflowRepository extends BaseRepository {
     }
 
     public SuccessesAndErrorsDto updateEvents(
-        long tenantId,
-        String processId,
-        int version,
-        List<WorkflowEventDto> events
-    ) {
+            long tenantId,
+            String processId,
+            int version,
+            List<WorkflowEventDto> events) {
         var result = new SuccessesAndErrorsDto();
 
         InitialContext ic = null;
@@ -117,17 +121,15 @@ public class WorkflowRepository extends BaseRepository {
             DataSource ds = (DataSource) ic.lookup(DB_DATASOURCE_NAME);
 
             try (
-                Connection conn = ds.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(
-                    "UPDATE event_proces "
-                    + "SET DSL_EVENT = ? "
-                    + "WHERE "
-                        + "COD_EMPRESA = ? "
-                        + "AND COD_DEF_PROCES = ? "
-                        + "AND COD_EVENT = ? "
-                        + "AND NUM_VERS = ? "
-                )
-            ) {
+                    Connection conn = ds.getConnection();
+                    PreparedStatement stmt = conn.prepareStatement(
+                            "UPDATE event_proces "
+                                    + "SET DSL_EVENT = ? "
+                                    + "WHERE "
+                                    + "COD_EMPRESA = ? "
+                                    + "AND COD_DEF_PROCES = ? "
+                                    + "AND COD_EVENT = ? "
+                                    + "AND NUM_VERS = ? ")) {
                 conn.setAutoCommit(false);
 
                 stmt.setLong(2, tenantId);
@@ -162,7 +164,10 @@ public class WorkflowRepository extends BaseRepository {
 
         } finally {
             if (ic != null) {
-                try { ic.close(); } catch (Exception ignore) {}
+                try {
+                    ic.close();
+                } catch (Exception ignore) {
+                }
             }
         }
 
@@ -170,12 +175,11 @@ public class WorkflowRepository extends BaseRepository {
     }
 
     public SuccessesAndErrorsDto createEvents(
-        long tenantId,
-        String processId,
-        int version,
-        String userCode,
-        List<WorkflowEventDto> events
-    ) {
+            long tenantId,
+            String processId,
+            int version,
+            String userCode,
+            List<WorkflowEventDto> events) {
         var result = new SuccessesAndErrorsDto();
 
         InitialContext ic = null;
@@ -185,14 +189,12 @@ public class WorkflowRepository extends BaseRepository {
             DataSource ds = (DataSource) ic.lookup(DB_DATASOURCE_NAME);
 
             try (
-                Connection conn = ds.getConnection();
+                    Connection conn = ds.getConnection();
 
-                PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO event_proces "
-                    + "(COD_EMPRESA, COD_DEF_PROCES, NUM_VERS, SCRIPT_VERSION, AUTHOR_ID, CREATE_DATE, COD_EVENT, DSL_EVENT) "
-                    + "VALUES  (?, ?, ?, ?, ?, ?, ?, ?)"
-                )
-            ) {
+                    PreparedStatement stmt = conn.prepareStatement(
+                            "INSERT INTO event_proces "
+                                    + "(COD_EMPRESA, COD_DEF_PROCES, NUM_VERS, SCRIPT_VERSION, AUTHOR_ID, CREATE_DATE, COD_EVENT, DSL_EVENT) "
+                                    + "VALUES  (?, ?, ?, ?, ?, ?, ?, ?)")) {
                 conn.setAutoCommit(false);
 
                 stmt.setLong(1, tenantId);
@@ -230,10 +232,165 @@ public class WorkflowRepository extends BaseRepository {
 
         } finally {
             if (ic != null) {
-                try { ic.close(); } catch (Exception ignore) {}
+                try {
+                    ic.close();
+                } catch (Exception ignore) {
+                }
             }
         }
 
         return result;
+    }
+
+    public List<WorkflowProcessDto> findProcesses(long tenantId) throws Exception {
+        List<WorkflowProcessDto> result = new java.util.ArrayList<>();
+
+        InitialContext ic = null;
+
+        try {
+            ic = new InitialContext();
+            DataSource ds = (DataSource) ic.lookup(DB_DATASOURCE_NAME);
+
+            try (
+                    Connection conn = ds.getConnection();
+                    PreparedStatement stmt = conn.prepareStatement(
+                            "SELECT COD_DEF_PROCES, MAX(NUM_VERS) AS VERSION " +
+                                    "FROM VERS_DEF_PROCES " +
+                                    "WHERE COD_EMPRESA = ? " +
+                                    "GROUP BY COD_DEF_PROCES " +
+                                    "ORDER BY COD_DEF_PROCES")) {
+
+                stmt.setLong(1, tenantId);
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        WorkflowProcessDto dto = new WorkflowProcessDto();
+
+                        dto.setProcessId(rs.getString("COD_DEF_PROCES"));
+                        dto.setVersion(rs.getInt("VERSION"));
+                        dto.setDescription(dto.getProcessId());
+
+                        dto.setActive(true);
+
+                        result.add(dto);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
+        } finally {
+            if (ic != null) {
+                try {
+                    ic.close();
+                } catch (Exception ignore) {
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public Object exportProcess(long tenantId, String processId, int version) throws Exception {
+
+        InitialContext ic = null;
+
+        try {
+            ic = new InitialContext();
+            DataSource ds = (DataSource) ic.lookup(DB_DATASOURCE_NAME);
+
+            try (
+                    Connection conn = ds.getConnection();
+                    PreparedStatement stmt = conn.prepareStatement(
+                            "SELECT " +
+                                    "dp.cod_empresa, dp.cod_def_proces AS process_id, dp.des_def_proces AS description, "
+                                    +
+                                    "vdp.num_vers AS version, vdp.clb_img_proces AS process_xml, " +
+                                    "ep.cod_event AS event_name, ep.dsl_event AS event_script, " +
+                                    "ef.cod_event AS form_event_name, ef.dsl_event AS form_event_script " +
+                                    "FROM def_proces dp " +
+                                    "INNER JOIN vers_def_proces vdp ON vdp.cod_empresa = dp.cod_empresa AND vdp.cod_def_proces = dp.cod_def_proces "
+                                    +
+                                    "LEFT JOIN event_proces ep ON ep.cod_empresa = dp.cod_empresa AND ep.cod_def_proces = dp.cod_def_proces "
+                                    +
+                                    "LEFT JOIN event_ficha ef ON ef.cod_empresa = dp.cod_empresa " +
+                                    "WHERE dp.cod_empresa = ? " +
+                                    "AND dp.cod_def_proces = ? " +
+                                    "AND vdp.num_vers = ?")) {
+
+                stmt.setLong(1, tenantId);
+                stmt.setString(2, processId);
+                stmt.setInt(3, version);
+
+                try (ResultSet rs = stmt.executeQuery()) {
+
+                    Map<String, Object> result = new HashMap<>();
+                    List<Map<String, Object>> events = new ArrayList<>();
+                    List<Map<String, Object>> formEvents = new ArrayList<>();
+
+                    Set<String> eventKeys = new HashSet<>();
+                    Set<String> formEventKeys = new HashSet<>();
+
+                    while (rs.next()) {
+
+                        if (!result.containsKey("definition")) {
+                            result.put("processId", rs.getString("process_id"));
+                            result.put("description", rs.getString("description"));
+                            result.put("version", rs.getInt("version"));
+                            result.put("definition", rs.getString("process_xml"));
+                        }
+
+                        String eventName = rs.getString("event_name");
+                        if (eventName != null) {
+
+                            if (!eventKeys.contains(eventName)) {
+                                eventKeys.add(eventName);
+
+                                Map<String, Object> ev = new HashMap<>();
+                                ev.put("name", eventName);
+                                ev.put("script", rs.getString("event_script"));
+
+                                events.add(ev);
+                            }
+                        }
+
+                        String formEventName = rs.getString("form_event_name");
+                        if (formEventName != null) {
+
+                            if (!formEventKeys.contains(formEventName)) {
+                                formEventKeys.add(formEventName);
+
+                                Map<String, Object> fe = new HashMap<>();
+                                fe.put("name", formEventName);
+                                fe.put("script", rs.getString("form_event_script"));
+
+                                formEvents.add(fe);
+                            }
+                        }
+                    }
+
+                    if (result.isEmpty()) {
+                        throw new Exception("Processo não encontrado.");
+                    }
+
+                    result.put("events", events);
+                    result.put("formEvents", formEvents);
+
+                    return result;
+                }
+            }
+
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
+        } finally {
+            if (ic != null) {
+                try {
+                    ic.close();
+                } catch (Exception ignore) {
+                }
+            }
+        }
     }
 }

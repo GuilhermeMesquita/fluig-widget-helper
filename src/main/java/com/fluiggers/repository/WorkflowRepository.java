@@ -15,6 +15,11 @@ import java.util.Set;
 
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.jboss.logging.Logger;
 
@@ -22,6 +27,7 @@ import com.fluiggers.dto.SuccessesAndErrorsDto;
 import com.fluiggers.dto.WorkflowEventDto;
 import com.fluiggers.dto.WorkflowProcessDto;
 import com.fluiggers.exception.WorkflowNotFoundedException;
+import com.fluiggers.service.WorkflowService;
 
 public class WorkflowRepository extends BaseRepository {
     protected final Logger log = Logger.getLogger(getClass());
@@ -304,20 +310,24 @@ public class WorkflowRepository extends BaseRepository {
                     Connection conn = ds.getConnection();
                     PreparedStatement stmt = conn.prepareStatement(
                             "SELECT " +
-                                    "dp.cod_empresa, dp.cod_def_proces AS process_id, dp.des_def_proces AS description, "
-                                    +
-                                    "vdp.num_vers AS version, vdp.clb_img_proces AS process_xml, " +
-                                    "ep.cod_event AS event_name, ep.dsl_event AS event_script, " +
-                                    "ef.cod_event AS form_event_name, ef.dsl_event AS form_event_script " +
+                                    "dp.cod_empresa, " +
+                                    "dp.cod_def_proces AS process_id, " +
+                                    "dp.des_def_proces AS description, " +
+                                    "vdp.num_vers AS version, " +
+                                    "vdp.clb_img_proces AS process_xml, " +
+                                    "ep.cod_event AS event_name, " +
+                                    "ep.dsl_event AS event_script " +
                                     "FROM def_proces dp " +
-                                    "INNER JOIN vers_def_proces vdp ON vdp.cod_empresa = dp.cod_empresa AND vdp.cod_def_proces = dp.cod_def_proces "
-                                    +
-                                    "LEFT JOIN event_proces ep ON ep.cod_empresa = dp.cod_empresa AND ep.cod_def_proces = dp.cod_def_proces "
-                                    +
-                                    "LEFT JOIN event_ficha ef ON ef.cod_empresa = dp.cod_empresa " +
+                                    "INNER JOIN vers_def_proces vdp " +
+                                    "   ON vdp.cod_empresa = dp.cod_empresa " +
+                                    "  AND vdp.cod_def_proces = dp.cod_def_proces " +
+                                    "LEFT JOIN event_proces ep " +
+                                    "   ON ep.cod_empresa = dp.cod_empresa " +
+                                    "  AND ep.cod_def_proces = dp.cod_def_proces " +
+                                    "  AND ep.num_vers = vdp.num_vers " +
                                     "WHERE dp.cod_empresa = ? " +
-                                    "AND dp.cod_def_proces = ? " +
-                                    "AND vdp.num_vers = ?")) {
+                                    "  AND dp.cod_def_proces = ? " +
+                                    "  AND vdp.num_vers = ?")) {
 
                 stmt.setLong(1, tenantId);
                 stmt.setString(2, processId);
@@ -327,13 +337,9 @@ public class WorkflowRepository extends BaseRepository {
 
                     Map<String, Object> result = new HashMap<>();
                     List<Map<String, Object>> events = new ArrayList<>();
-                    List<Map<String, Object>> formEvents = new ArrayList<>();
-
                     Set<String> eventKeys = new HashSet<>();
-                    Set<String> formEventKeys = new HashSet<>();
 
                     while (rs.next()) {
-
                         if (!result.containsKey("definition")) {
                             result.put("processId", rs.getString("process_id"));
                             result.put("description", rs.getString("description"));
@@ -342,30 +348,14 @@ public class WorkflowRepository extends BaseRepository {
                         }
 
                         String eventName = rs.getString("event_name");
-                        if (eventName != null) {
-
+                        if (eventName != null && !eventName.trim().isEmpty()) {
                             if (!eventKeys.contains(eventName)) {
                                 eventKeys.add(eventName);
 
                                 Map<String, Object> ev = new HashMap<>();
                                 ev.put("name", eventName);
                                 ev.put("script", rs.getString("event_script"));
-
                                 events.add(ev);
-                            }
-                        }
-
-                        String formEventName = rs.getString("form_event_name");
-                        if (formEventName != null) {
-
-                            if (!formEventKeys.contains(formEventName)) {
-                                formEventKeys.add(formEventName);
-
-                                Map<String, Object> fe = new HashMap<>();
-                                fe.put("name", formEventName);
-                                fe.put("script", rs.getString("form_event_script"));
-
-                                formEvents.add(fe);
                             }
                         }
                     }
@@ -375,8 +365,6 @@ public class WorkflowRepository extends BaseRepository {
                     }
 
                     result.put("events", events);
-                    result.put("formEvents", formEvents);
-
                     return result;
                 }
             }
@@ -393,4 +381,5 @@ public class WorkflowRepository extends BaseRepository {
             }
         }
     }
+
 }

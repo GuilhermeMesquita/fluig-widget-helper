@@ -112,7 +112,7 @@ public class WorkflowController extends BaseController {
     }
 
     @GET
-    @Path("/{processId}/{version}/export")
+    @Path("/{processId}/{version}/import")
     @Produces(MediaType.APPLICATION_JSON)
     public Response exportProcess(
             @PathParam("processId") String processId,
@@ -132,7 +132,7 @@ public class WorkflowController extends BaseController {
 
         } catch (Exception e) {
             log.error(e);
-            throw new InternalServerErrorException("Erro ao exportar processo.");
+            throw new InternalServerErrorException("Erro ao importar processo.");
         }
     }
 }

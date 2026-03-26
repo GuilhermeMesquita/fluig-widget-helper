@@ -74,8 +74,8 @@ public class WorkflowService {
         return repository.findProcesses(tenantId);
     }
 
-    public Object exportProcess(long tenantId, String processId, int version) throws Exception {
+    public Object importProcess(long tenantId, String processId, int version) throws Exception {
         var repository = new WorkflowRepository();
-        return repository.exportProcess(tenantId, processId, version);
+        return repository.importProcess(tenantId, processId, version);
     }
 }

@@ -298,7 +298,7 @@ public class WorkflowRepository extends BaseRepository {
         return result;
     }
 
-    public Object exportProcess(long tenantId, String processId, int version) throws Exception {
+    public Object importProcess(long tenantId, String processId, int version) throws Exception {
 
         InitialContext ic = null;
 

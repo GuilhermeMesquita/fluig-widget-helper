@@ -114,7 +114,7 @@ public class WorkflowController extends BaseController {
     @GET
     @Path("/{processId}/{version}/import")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response exportProcess(
+    public Response importProcess(
             @PathParam("processId") String processId,
             @PathParam("version") int version) {
 
@@ -123,7 +123,7 @@ public class WorkflowController extends BaseController {
         try {
             var service = new WorkflowService();
 
-            Object result = service.exportProcess(
+            Object result = service.importProcess(
                     securityService.getCurrentTenantId(),
                     processId,
                     version);
